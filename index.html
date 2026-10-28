@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduShare - Nền tảng chia sẻ tài liệu học tập</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200 flex items-center justify-center">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">EduShare</span>
+                    <span class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full ml-2 border border-indigo-100">Free 100%</span>
+                </div>
+            </div>
+
+            <!-- Search Bar Header -->
+            <div class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tên tài liệu, bài học, tác giả..." class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- User Actions -->
+            <div class="flex items-center space-x-3">
+                <div id="userGuestSection" class="flex items-center space-x-2">
+                    <button onclick="openAuthModal('login')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors">Đăng nhập</button>
+                    <button onclick="openAuthModal('register')" class="px-4.5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-all">Đăng ký</button>
+                </div>
+                <div id="userLoggedSection" class="hidden flex items-center space-x-3">
+                    <div class="text-right hidden sm:block">
+                        <div id="userNameDisplay" class="text-sm font-bold text-slate-700">User</div>
+                        <div class="text-xs text-emerald-600 font-medium flex items-center justify-end space-x-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                            <span>Đã đăng nhập</span>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors" title="Đăng xuất">
+                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Left Sidebar: Filters & Upload Trigger -->
+        <aside class="space-y-6">
+            <!-- Upload CTA Button -->
+            <button onclick="openUploadModal()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2.5 transition-all transform active:scale-95">
+                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                <span>Tải Tài Liệu Lên</span>
+            </button>
+
+            <!-- Filters Box -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-filter text-indigo-600"></i>
+                        <span>Bộ Lọc Tìm Kiếm</span>
+                    </h3>
+                    <button onclick="resetFilters()" class="text-xs text-indigo-600 font-semibold hover:underline">Đặt lại</button>
+                </div>
+
+                <!-- Filter by Grade -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Khối lớp</label>
+                    <select id="filterGrade" onchange="filterDocuments()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 focus:border-indigo-500 outline-none">
+                        <option value="">Tất cả khối lớp</option>
+                        <option value="Lớp 10">Lớp 10</option>
+                        <option value="Lớp 11">Lớp 11</option>
+                        <option value="Lớp 12">Lớp 12</option>
+                        <option value="Đại học / Cao đẳng">Đại học / Cao đẳng</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+
+                <!-- Filter by Subject -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Môn học</label>
+                    <select id="filterSubject" onchange="filterDocuments()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 focus:border-indigo-500 outline-none">
+                        <option value="">Tất cả môn học</option>
+                        <option value="Toán học">Toán học</option>
+                        <option value="Vật lý">Vật lý</option>
+                        <option value="Hóa học">Hóa học</option>
+                        <option value="Sinh học">Sinh học</option>
+                        <option value="Ngữ văn">Ngữ văn</option>
+                        <option value="Tiếng Anh">Tiếng Anh</option>
+                        <option value="Lịch sử">Lịch sử</option>
+                        <option value="Địa lý">Địa lý</option>
+                        <option value="Kinh tế và Pháp luật">Kinh tế và Pháp luật</option>
+                        <option value="Quốc phòng và An ninh">Quốc phòng và An ninh</option>
+                        <option value="Tin học">Tin học</option>
+                        <option value="Công nghệ">Công nghệ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Content: Document List & Feed -->
+        <section class="lg:col-span-3 space-y-6">
+            <!-- Banner Introduction -->
+            <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute right-0 bottom-0 opacity-10 translate-x-8 translate-y-8">
+                    <i class="fa-solid fa-folder-open text-9xl"></i>
+                </div>
+                <div class="relative z-10 max-w-xl space-y-3">
+                    <span class="bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Kho tài liệu thông minh miễn phí</span>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Chia sẻ tri thức - Kết nối học tập</h1>
+                    <p class="text-indigo-200 text-sm leading-relaxed">Tải lên siêu nhanh, xem trước và tìm kiếm tài liệu, đề thi, bài giảng chi tiết theo từng môn học dễ dàng.</p>
+                </div>
+            </div>
+
+            <!-- Document Catalog Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="font-extrabold text-slate-800 text-lg">Danh Sách Tài Liệu</span>
+                    <span id="docCountBadge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-0.5 rounded-full">0 tài liệu</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sắp xếp:</span>
+                    <select id="sortBy" onchange="filterDocuments()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-700 outline-none">
+                        <option value="newest">Mới nhất</option>
+                        <option value="downloads">Tải nhiều nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Document List Grid -->
+            <div id="documentGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dữ liệu hiển thị tự động -->
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-400">
+        <p>EduShare Platform &copy; 2026 - Miễn phí hoàn toàn cho học sinh và sinh viên.</p>
+    </footer>
+
+    <!-- MODAL: UPLOAD TÀI LIỆU -->
+    <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <h3 class="text-xl font-extrabold text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i>
+                    <span>Tải Tài Liệu Lên Hệ Thống</span>
+                </h3>
+                <button onclick="closeUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleUploadSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tiêu đề tài liệu <span class="text-rose-500">*</span></label>
+                    <input type="text" id="upTitle" required placeholder="Ví dụ: Đề cương ôn tập giữa kì 1 Vật lý 10..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Khối lớp <span class="text-rose-500">*</span></label>
+                        <select id="upGrade" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                            <option value="">-- Chọn khối lớp --</option>
+                            <option value="Lớp 10">Lớp 10</option>
+                            <option value="Lớp 11">Lớp 11</option>
+                            <option value="Lớp 12">Lớp 12</option>
+                            <option value="Đại học / Cao đẳng">Đại học / Cao đẳng</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Môn học <span class="text-rose-500">*</span></label>
+                        <select id="upSubject" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                            <option value="">-- Chọn môn học --</option>
+                            <option value="Toán học">Toán học</option>
+                            <option value="Vật lý">Vật lý</option>
+                            <option value="Hóa học">Hóa học</option>
+                            <option value="Sinh học">Sinh học</option>
+                            <option value="Ngữ văn">Ngữ văn</option>
+                            <option value="Tiếng Anh">Tiếng Anh</option>
+                            <option value="Lịch sử">Lịch sử</option>
+                            <option value="Địa lý">Địa lý</option>
+                            <option value="Kinh tế và Pháp luật">Kinh tế và Pháp luật</option>
+                            <option value="Quốc phòng và An ninh">Quốc phòng và An ninh</option>
+                            <option value="Tin học">Tin học</option>
+                            <option value="Công nghệ">Công nghệ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Bài / Chương chi tiết <span class="text-rose-500">*</span></label>
+                    <input type="text" id="upLesson" required placeholder="Ví dụ: Bài 3: Chuyển động biến đổi - Gia tốc" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mô tả chi tiết tài liệu</label>
+                    <textarea id="upDescription" rows="3" placeholder="Chia sẻ thêm về nội dung tài liệu này..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chọn tệp tài liệu (PDF, Word, Ảnh...) <span class="text-rose-500">*</span></label>
+                    <input type="file" id="upFile" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                </div>
+
+                <div class="pt-3 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeUploadModal()" class="px-5 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700">Hủy</button>
+                    <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">
+                        <span>Xác nhận tải lên ngay</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: XEM TRƯỚC TÀI LIỆU -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="space-y-1">
+                    <span id="prevBadge" class="bg-indigo-50 text-indigo-700 font-bold text-xs px-2.5 py-0.5 rounded-lg">Môn học</span>
+                    <h3 id="prevTitle" class="text-lg font-extrabold text-slate-800">Tiêu đề tài liệu</h3>
+                </div>
+                <button onclick="closePreviewModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Thông tin chi tiết</p>
+                    <p><strong>Khối lớp:</strong> <span id="prevGrade">--</span></p>
+                    <p><strong>Bài / Chương:</strong> <span id="prevLesson">--</span></p>
+                    <p><strong>Tác giả đăng:</strong> <span id="prevAuthor">--</span></p>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Mô tả nội dung</p>
+                    <p id="prevDesc" class="text-slate-600 leading-relaxed bg-white p-3 border border-slate-100 rounded-xl">Chưa có mô tả.</p>
+                </div>
+                <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-center space-y-2">
+                    <p class="text-xs text-indigo-700 font-semibold"><i class="fa-solid fa-file-arrow-down mr-1"></i> File đính kèm: <span id="prevFileName" class="font-bold"></span></p>
+                    <div>
+                        <button id="btnPreviewDownload" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">
+                            <i class="fa-solid fa-download mr-1.5"></i> Tải xuống ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <h3 id="authModalTitle" class="text-xl font-extrabold text-slate-800">Đăng Nhập Tài Khoản</h3>
+                <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email</label>
+                    <input type="email" id="authEmail" required placeholder="nhapemail@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mật khẩu</label>
+                    <input type="password" id="authPassword" required placeholder="Mật khẩu của bạn" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-indigo-500 outline-none">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="btnAuthSubmit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">Đăng Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT XỬ LÝ MƯỢT MÀ ĐÃ SỬA LỖI -->
+    <script>
+        let allDocuments = [];
+        let currentUser = null;
+        let authMode = 'login';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDocuments();
+            document.getElementById('searchInput').addEventListener('input', filterDocuments);
+        });
+
+        function loadDocuments() {
+            const saved = localStorage.getItem('edushare_clean_docs_v2');
+            if (saved) {
+                try {
+                    allDocuments = JSON.parse(saved);
+                } catch(e) {
+                    allDocuments = [];
+                }
+            }
+
+            if (allDocuments.length === 0) {
+                allDocuments = [
+                    {
+                        id: 'demo-1',
+                        title: 'Đề cương ôn tập giữa kì 1 Vật lý 10 chuẩn cấu trúc mới',
+                        grade: 'Lớp 10',
+                        subject: 'Vật lý',
+                        lesson: 'Chương 1 & Chương 2: Động học',
+                        description: 'Tổng hợp lý thuyết trọng tâm và bài tập tự luận có lời giải chi tiết giúp ôn thi môn Vật lý 10 đạt điểm 9.5+.',
+                        author: 'Thanh Nhi',
+                        downloads: 48,
+                        fileName: 'De-cuong-Vat-Ly-10.pdf',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'demo-2',
+                        title: 'Sơ đồ tư duy và Bài tập trắc nghiệm Kinh tế và Pháp luật 10',
+                        grade: 'Lớp 10',
+                        subject: 'Kinh tế và Pháp luật',
+                        lesson: 'Chủ đề: Nền kinh tế và các hoạt động kinh tế',
+                        description: 'Tài liệu tóm tắt kiến thức cốt lõi môn KTPL 10 bằng sơ đồ trực quan, dễ nhớ, phục vụ kiểm tra thường xuyên.',
+                        author: 'Minh Thư',
+                        downloads: 32,
+                        fileName: 'KTPL-10-So-do-tu-duy.pdf',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'demo-3',
+                        title: 'Tài liệu hướng dẫn thực hành Quốc phòng và An ninh lớp 10',
+                        grade: 'Lớp 10',
+                        subject: 'Quốc phòng và An ninh',
+                        lesson: 'Bài học các đội hình đội ngũ từng người không có súng',
+                        description: 'Tài liệu hướng dẫn chi tiết các động tác nghiêm, nghỉ, quay tại chỗ và đi đều.',
+                        author: 'Ban Cán Sự 10A12',
+                        downloads: 19,
+                        fileName: 'Quoc-phong-10-Thuc-hanh.pdf',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                saveToStorage();
+            }
+            renderDocuments(allDocuments);
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('edushare_clean_docs_v2', JSON.stringify(allDocuments));
+        }
+
+        function renderDocuments(docs) {
+            const grid = document.getElementById('documentGrid');
+            document.getElementById('docCountBadge').innerText = `${docs.length} tài liệu`;
+
+            if (docs.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-2 text-center py-12 bg-white rounded-2xl border border-slate-200/80">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-sm font-semibold text-slate-500">Chưa có tài liệu nào phù hợp với tìm kiếm.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = docs.map(doc => `
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="bg-indigo-50 text-indigo-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-indigo-100">${doc.grade}</span>
+                            <span class="bg-violet-50 text-violet-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-violet-100">${doc.subject}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-base leading-snug hover:text-indigo-600 transition-colors">${escapeHtml(doc.title)}</h3>
+                            <p class="text-xs font-semibold text-slate-400 mt-1"><i class="fa-solid fa-book-bookmark mr-1"></i> ${escapeHtml(doc.lesson)}</p>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">${escapeHtml(doc.description || 'Không có mô tả chi tiết.')}</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <div class="text-slate-400 font-medium flex items-center space-x-1">
+                            <i class="fa-solid fa-user-pen"></i>
+                            <span>${escapeHtml(doc.author || 'Thành viên')}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openPreviewModal('${doc.id}')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all" title="Xem trước tài liệu">
+                                <i class="fa-solid fa-eye"></i> Xem
+                            </button>
+                            <button onclick="downloadDocument('${doc.id}')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition-all flex items-center space-x-1.5">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Tải (${doc.downloads || 0})</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterDocuments() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const grade = document.getElementById('filterGrade').value;
+            const subject = document.getElementById('filterSubject').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = allDocuments.filter(doc => {
+                const matchKeyword = doc.title.toLowerCase().includes(keyword) || 
+                                     doc.lesson.toLowerCase().includes(keyword) || 
+                                     (doc.description && doc.description.toLowerCase().includes(keyword));
+                const matchGrade = !grade || doc.grade === grade;
+                const matchSubject = !subject || doc.subject === subject;
+                return matchKeyword && matchGrade && matchSubject;
+            });
+
+            if (sortBy === 'downloads') {
+                filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+            } else {
+                filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            }
+
+            renderDocuments(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterSubject').value = '';
+            document.getElementById('sortBy').value = 'newest';
+            renderDocuments(allDocuments);
+        }
+
+        function downloadDocument(id) {
+            const docItem = allDocuments.find(d => d.id === id);
+            if (!docItem) return;
+
+            docItem.downloads = (docItem.downloads || 0) + 1;
+            saveToStorage();
+            renderDocuments(allDocuments);
+
+            const content = `=== TÀI LIỆU HỌC TẬP EDUSHARE ===\nTiêu đề: ${docItem.title}\nKhối lớp: ${docItem.grade}\nMôn học: ${docItem.subject}\nBài/Chương: ${docItem.lesson}\nMô tả: ${docItem.description || 'Không có mô tả.'}\nTác giả: ${docItem.author}\nNgày tải lên: ${docItem.createdAt}`;
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = docItem.fileName || 'tai-lieu.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function openPreviewModal(id) {
+            const docItem = allDocuments.find(d => d.id === id);
+            if (!docItem) return;
+
+            document.getElementById('prevBadge').innerText = `${docItem.grade} - ${docItem.subject}`;
+            document.getElementById('prevTitle').innerText = docItem.title;
+            document.getElementById('prevGrade').innerText = docItem.grade;
+            document.getElementById('prevLesson').innerText = docItem.lesson;
+            document.getElementById('prevAuthor').innerText = docItem.author || 'Thành viên';
+            document.getElementById('prevDesc').innerText = docItem.description || 'Không có mô tả chi tiết.';
+            document.getElementById('prevFileName').innerText = docItem.fileName || 'tai-lieu.txt';
+            document.getElementById('btnPreviewDownload').onclick = () => downloadDocument(docItem.id);
+
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+            document.getElementById('uploadForm').reset();
+        }
+
+        function handleUploadSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('upTitle').value;
+            const grade = document.getElementById('upGrade').value;
+            const subject = document.getElementById('upSubject').value;
+            const lesson = document.getElementById('upLesson').value;
+            const description = document.getElementById('upDescription').value;
+            const fileInput = document.getElementById('upFile');
+            
+            const file = fileInput.files[0];
+            const fileName = file ? file.name : 'tai-lieu.pdf';
+            const authorName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : 'Thành viên ẩn danh';
+
+            const newDoc = {
+                id: 'doc-' + Date.now(),
+                title,
+                grade,
+                subject,
+                lesson,
+                description,
+                author: authorName,
+                downloads: 0,
+                fileName,
+                createdAt: new Date().toISOString()
+            };
+
+            allDocuments.unshift(newDoc);
+            saveToStorage();
+            renderDocuments(allDocuments);
+            closeUploadModal();
+            alert("Tải lên tài liệu thành công!");
+        }
+
+        function openAuthModal(mode) {
+            authMode = mode;
+            document.getElementById('authModalTitle').innerText = mode === 'login' ? 'Đăng Nhập Tài Khoản' : 'Đăng Ký Tài Khoản';
+            document.getElementById('btnAuthSubmit').innerText = mode === 'login' ? 'Đăng Nhập' : 'Đăng Ký Ngay';
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authForm').reset();
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            currentUser = { email };
+            document.getElementById('userGuestSection').classList.add('hidden');
+            document.getElementById('userLoggedSection').classList.remove('hidden');
+            document.getElementById('userNameDisplay').innerText = email;
+            closeAuthModal();
+            alert(authMode === 'login' ? "Đăng nhập thành công!" : "Đăng ký thành công!");
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('userGuestSection').classList.remove('hidden');
+            document.getElementById('userLoggedSection').classList.add('hidden');
+            alert("Đã đăng xuất!");
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

@@ -127,7 +127,7 @@
                 <div class="relative z-10 max-w-xl space-y-3">
                     <span class="bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Kho tài liệu thông minh miễn phí</span>
                     <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Chia sẻ tri thức - Kết nối học tập</h1>
-                    <p class="text-indigo-200 text-sm leading-relaxed">Tải lên siêu nhanh, xem trước và tìm kiếm tài liệu, đề thi, bài giảng chi tiết theo từng môn học dễ dàng.</p>
+                    <p class="text-indigo-200 text-sm leading-relaxed">Tải lên siêu nhanh, xem trước và tải file chuẩn nguyên gốc dễ dàng.</p>
                 </div>
             </div>
 
@@ -259,10 +259,10 @@
                     <p id="prevDesc" class="text-slate-600 leading-relaxed bg-white p-3 border border-slate-100 rounded-xl">Chưa có mô tả.</p>
                 </div>
                 <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-center space-y-2">
-                    <p class="text-xs text-indigo-700 font-semibold"><i class="fa-solid fa-file-arrow-down mr-1"></i> File đính kèm: <span id="prevFileName" class="font-bold"></span></p>
+                    <p class="text-xs text-indigo-700 font-semibold"><i class="fa-solid fa-file-arrow-down mr-1"></i> File đính kèm gốc: <span id="prevFileName" class="font-bold"></span></p>
                     <div>
                         <button id="btnPreviewDownload" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">
-                            <i class="fa-solid fa-download mr-1.5"></i> Tải xuống ngay
+                            <i class="fa-solid fa-download mr-1.5"></i> Tải xuống nguyên bản
                         </button>
                     </div>
                 </div>
@@ -297,7 +297,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT XỬ LÝ MƯỢT MÀ ĐÃ SỬA LỖI -->
+    <!-- SCRIPT XỬ LÝ LƯU TRỮ FILE GỐC CHUẨN XÁC -->
     <script>
         let allDocuments = [];
         let currentUser = null;
@@ -309,7 +309,7 @@
         });
 
         function loadDocuments() {
-            const saved = localStorage.getItem('edushare_clean_docs_v2');
+            const saved = localStorage.getItem('edushare_real_files_v3');
             if (saved) {
                 try {
                     allDocuments = JSON.parse(saved);
@@ -329,31 +329,8 @@
                         description: 'Tổng hợp lý thuyết trọng tâm và bài tập tự luận có lời giải chi tiết giúp ôn thi môn Vật lý 10 đạt điểm 9.5+.',
                         author: 'Thanh Nhi',
                         downloads: 48,
-                        fileName: 'De-cuong-Vat-Ly-10.pdf',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 'demo-2',
-                        title: 'Sơ đồ tư duy và Bài tập trắc nghiệm Kinh tế và Pháp luật 10',
-                        grade: 'Lớp 10',
-                        subject: 'Kinh tế và Pháp luật',
-                        lesson: 'Chủ đề: Nền kinh tế và các hoạt động kinh tế',
-                        description: 'Tài liệu tóm tắt kiến thức cốt lõi môn KTPL 10 bằng sơ đồ trực quan, dễ nhớ, phục vụ kiểm tra thường xuyên.',
-                        author: 'Minh Thư',
-                        downloads: 32,
-                        fileName: 'KTPL-10-So-do-tu-duy.pdf',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 'demo-3',
-                        title: 'Tài liệu hướng dẫn thực hành Quốc phòng và An ninh lớp 10',
-                        grade: 'Lớp 10',
-                        subject: 'Quốc phòng và An ninh',
-                        lesson: 'Bài học các đội hình đội ngũ từng người không có súng',
-                        description: 'Tài liệu hướng dẫn chi tiết các động tác nghiêm, nghỉ, quay tại chỗ và đi đều.',
-                        author: 'Ban Cán Sự 10A12',
-                        downloads: 19,
-                        fileName: 'Quoc-phong-10-Thuc-hanh.pdf',
+                        fileName: 'De-cuong-Vat-Ly-10.txt',
+                        fileData: 'data:text/plain;charset=utf-8,Noi%20dung%20mau%20Vat%20ly%2010',
                         createdAt: new Date().toISOString()
                     }
                 ];
@@ -363,7 +340,11 @@
         }
 
         function saveToStorage() {
-            localStorage.setItem('edushare_clean_docs_v2', JSON.stringify(allDocuments));
+            try {
+                localStorage.setItem('edushare_real_files_v3', JSON.stringify(allDocuments));
+            } catch(err) {
+                alert("Bộ nhớ trình duyệt đã đầy do file quá lớn! Hãy thử file dung lượng nhỏ hơn.");
+            }
         }
 
         function renderDocuments(docs) {
@@ -447,23 +428,19 @@
 
         function downloadDocument(id) {
             const docItem = allDocuments.find(d => d.id === id);
-            if (!docItem) return;
+            if (!docItem || !docItem.fileData) return;
 
             docItem.downloads = (docItem.downloads || 0) + 1;
             saveToStorage();
             renderDocuments(allDocuments);
 
-            const content = `=== TÀI LIỆU HỌC TẬP EDUSHARE ===\nTiêu đề: ${docItem.title}\nKhối lớp: ${docItem.grade}\nMôn học: ${docItem.subject}\nBài/Chương: ${docItem.lesson}\nMô tả: ${docItem.description || 'Không có mô tả.'}\nTác giả: ${docItem.author}\nNgày tải lên: ${docItem.createdAt}`;
-            
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
+            // Tải đúng file gốc nguyên bản
             const a = document.createElement('a');
-            a.href = url;
-            a.download = docItem.fileName || 'tai-lieu.txt';
+            a.href = docItem.fileData;
+            a.download = docItem.fileName || 'tai-lieu.docx';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         }
 
         function openPreviewModal(id) {
@@ -476,7 +453,7 @@
             document.getElementById('prevLesson').innerText = docItem.lesson;
             document.getElementById('prevAuthor').innerText = docItem.author || 'Thành viên';
             document.getElementById('prevDesc').innerText = docItem.description || 'Không có mô tả chi tiết.';
-            document.getElementById('prevFileName').innerText = docItem.fileName || 'tai-lieu.txt';
+            document.getElementById('prevFileName').innerText = docItem.fileName || 'tai-lieu.docx';
             document.getElementById('btnPreviewDownload').onclick = () => downloadDocument(docItem.id);
 
             document.getElementById('previewModal').classList.remove('hidden');
@@ -504,27 +481,34 @@
             const fileInput = document.getElementById('upFile');
             
             const file = fileInput.files[0];
-            const fileName = file ? file.name : 'tai-lieu.pdf';
-            const authorName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : 'Thành viên ẩn danh';
+            if (!file) return;
 
-            const newDoc = {
-                id: 'doc-' + Date.now(),
-                title,
-                grade,
-                subject,
-                lesson,
-                description,
-                author: authorName,
-                downloads: 0,
-                fileName,
-                createdAt: new Date().toISOString()
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const fileData = event.target.result; // Lưu nguyên bản dữ liệu file dưới dạng Base64
+                const authorName = currentUser && currentUser.email ? currentUser.email.split('@')[0] : 'Thành viên ẩn danh';
+
+                const newDoc = {
+                    id: 'doc-' + Date.now(),
+                    title,
+                    grade,
+                    subject,
+                    lesson,
+                    description,
+                    author: authorName,
+                    downloads: 0,
+                    fileName: file.name,
+                    fileData,
+                    createdAt: new Date().toISOString()
+                };
+
+                allDocuments.unshift(newDoc);
+                saveToStorage();
+                renderDocuments(allDocuments);
+                closeUploadModal();
+                alert("Tải lên tài liệu thành công!");
             };
-
-            allDocuments.unshift(newDoc);
-            saveToStorage();
-            renderDocuments(allDocuments);
-            closeUploadModal();
-            alert("Tải lên tài liệu thành công!");
+            reader.readAsDataURL(file);
         }
 
         function openAuthModal(mode) {
